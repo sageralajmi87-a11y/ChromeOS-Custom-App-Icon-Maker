@@ -1,4 +1,4 @@
-# Old Google
+# Custom App Icon Maker For ChromeOS
 
 A website that adds an app with the image you have provided with the desired link basicly a custom app icon maker.
 
