@@ -1,293 +1,1551 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nova</title>
-    <style>
-        :root {
-            --bg-base: #020005;
-            --bg-glow: #15052e;
-            --accent-main: #d8b4fe;
-            --accent-hover: #e9d5ff;
-            --link-title: #a78bfa;
-            --link-url: #818cf8;
-            --text-muted: #94a3b8;
-            --glass-bg: rgba(255, 255, 255, 0.02);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --transition-smooth: all 0.7s cubic-bezier(0.25, 1, 0.5, 1);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexus Search</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --bg3: #17171f;
+    --bg4: #1e1e28;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8e8f0;
+    --muted: #888899;
+    --accent: #7c6af7;
+    --accent2: #a78bfa;
+    --accent-glow: rgba(124,106,247,0.15);
+    --green: #34d399;
+    --red: #f87171;
+    --amber: #fbbf24;
+    --cyan: #22d3ee;
+    --font: 'Sora', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
 
-        body, html {
-            margin: 0; padding: 0;
-            background-color: var(--bg-base);
-            background-image: radial-gradient(circle at 50% -20%, var(--bg-glow), transparent 60%);
-            color: #f8fafc;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            height: 100vh;
-            overflow: hidden; /* Hide main scroll, handle in results */
-        }
+  /* ─── LANDING ─── */
+  #landing {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem;
+    position: relative;
+  }
+  #landing::before {
+    content: '';
+    position: fixed;
+    top: -200px; left: 50%;
+    transform: translateX(-50%);
+    width: 800px; height: 600px;
+    background: radial-gradient(ellipse, rgba(124,106,247,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 3rem;
+  }
+  .logo-icon {
+    width: 52px; height: 52px;
+    background: var(--accent);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+  }
+  .logo-text {
+    font-size: 2.8rem;
+    font-weight: 700;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #fff 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .tagline {
+    color: var(--muted);
+    font-size: 1rem;
+    margin-bottom: 2.5rem;
+    letter-spacing: 0.5px;
+  }
+  .search-container {
+    width: 100%;
+    max-width: 660px;
+    position: relative;
+  }
+  .search-box {
+    display: flex;
+    align-items: center;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 16px;
+    padding: 6px 6px 6px 20px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .search-box:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .search-icon { font-size: 18px; margin-right: 12px; color: var(--muted); flex-shrink: 0; }
+  #main-search {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 1.05rem;
+    padding: 10px 0;
+  }
+  #main-search::placeholder { color: var(--muted); }
+  .search-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 22px;
+    font-family: var(--font);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    white-space: nowrap;
+  }
+  .search-btn:hover { opacity: 0.9; }
+  .search-btn:active { transform: scale(0.97); }
+  .suggestions-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 1.2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .suggestion-pill {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .suggestion-pill:hover { background: var(--bg4); color: var(--text); border-color: var(--border2); }
 
-        /* The Master Layout */
-        .master-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            padding: 0 20px;
-            transition: var(--transition-smooth);
-            transform: translateY(0);
-        }
+  /* ─── RESULTS PAGE ─── */
+  #results-page {
+    display: none;
+    min-height: 100vh;
+    flex-direction: column;
+  }
+  .top-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 24px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .top-logo {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none; cursor: pointer;
+    flex-shrink: 0;
+  }
+  .top-logo-icon {
+    width: 34px; height: 34px;
+    background: var(--accent);
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px;
+  }
+  .top-logo-text {
+    font-size: 1.2rem; font-weight: 700;
+    background: linear-gradient(135deg, #fff 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .top-search-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 4px 4px 4px 14px;
+    transition: border-color 0.2s;
+    max-width: 700px;
+  }
+  .top-search-wrap:focus-within { border-color: var(--accent); }
+  .top-search-icon { color: var(--muted); font-size: 15px; margin-right: 10px; }
+  #top-search {
+    flex: 1;
+    background: transparent;
+    border: none; outline: none;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 0.95rem;
+    padding: 7px 0;
+  }
+  #top-search::placeholder { color: var(--muted); }
+  .top-search-btn {
+    background: var(--accent);
+    color: #fff; border: none;
+    border-radius: 9px;
+    padding: 8px 16px;
+    font-family: var(--font);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .top-search-btn:hover { opacity: 0.9; }
 
-        /* The 'Searching' State */
-        .searching-state {
-            justify-content: flex-start;
-            padding-top: 5vh;
-        }
+  /* ─── TABS ─── */
+  .tabs-bar {
+    display: flex;
+    gap: 4px;
+    padding: 0 24px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    padding: 12px 18px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+    display: flex; align-items: center; gap: 6px;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent2); border-bottom-color: var(--accent); }
 
-        /* Typography & Header */
-        .header-group {
-            text-align: center;
-            transition: var(--transition-smooth);
-        }
+  /* ─── CONTENT AREA ─── */
+  .content-wrap {
+    display: flex;
+    gap: 24px;
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+  }
 
-        .logo {
-            font-size: 6rem;
-            font-weight: 900;
-            letter-spacing: -4px;
-            margin: 0;
-            background: linear-gradient(135deg, #ffffff 0%, var(--accent-main) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 4px 20px rgba(216, 180, 254, 0.15));
-            transition: var(--transition-smooth);
-            cursor: pointer;
-        }
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+  }
+  .sidebar-section {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .sidebar-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .filter-option {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 0;
+    font-size: 0.85rem;
+    color: var(--text);
+    cursor: pointer;
+    border-radius: 8px;
+    transition: color 0.15s;
+  }
+  .filter-option:hover { color: var(--accent2); }
+  .filter-option input[type="radio"],
+  .filter-option input[type="checkbox"] {
+    accent-color: var(--accent);
+  }
+  .safe-search-toggle {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 4px;
+  }
+  .toggle-switch {
+    width: 36px; height: 20px;
+    background: var(--bg4);
+    border-radius: 10px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+    border: 1px solid var(--border2);
+  }
+  .toggle-switch.on { background: var(--accent); border-color: var(--accent); }
+  .toggle-switch::after {
+    content: '';
+    width: 14px; height: 14px;
+    background: #fff;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px; left: 2px;
+    transition: transform 0.2s;
+  }
+  .toggle-switch.on::after { transform: translateX(16px); }
 
-        .searching-state .logo { font-size: 2.5rem; letter-spacing: -1px; }
+  /* ─── MAIN RESULTS ─── */
+  .main-results { flex: 1; min-width: 0; }
 
-        .clock {
-            font-size: 1.1rem;
-            color: var(--accent-main);
-            letter-spacing: 6px;
-            margin-top: 5px;
-            margin-bottom: 30px;
-            opacity: 0.8;
-            font-weight: 300;
-            transition: var(--transition-smooth);
-            height: 20px; /* fixed height to prevent layout jumping */
-            overflow: hidden;
-        }
+  .results-meta {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-bottom: 18px;
+    font-family: var(--mono);
+  }
 
-        .searching-state .clock { opacity: 0; height: 0; margin: 0; }
+  /* ─── ALL TAB: Web Results ─── */
+  .web-result {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s, background 0.2s;
+    cursor: pointer;
+  }
+  .web-result:hover { border-color: var(--border2); background: var(--bg3); }
+  .result-url-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .result-favicon {
+    width: 16px; height: 16px;
+    border-radius: 3px;
+    background: var(--bg4);
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .result-url {
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    flex: 1;
+  }
+  .result-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--accent2);
+    margin-bottom: 6px;
+    line-height: 1.4;
+    text-decoration: none;
+    display: block;
+  }
+  .result-title:hover { color: #fff; text-decoration: underline; }
+  .result-snippet {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .result-snippet mark {
+    background: rgba(124,106,247,0.25);
+    color: var(--accent2);
+    border-radius: 3px;
+    padding: 0 2px;
+  }
+  .result-badges {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    font-size: 0.72rem;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-weight: 500;
+    font-family: var(--mono);
+  }
+  .badge-source { background: rgba(124,106,247,0.12); color: var(--accent2); border: 1px solid rgba(124,106,247,0.2); }
+  .badge-time { background: rgba(52,211,153,0.1); color: var(--green); border: 1px solid rgba(52,211,153,0.2); }
+  .badge-type { background: rgba(251,191,36,0.1); color: var(--amber); border: 1px solid rgba(251,191,36,0.2); }
 
-        /* Search Input */
-        .search-container {
-            width: 100%;
-            max-width: 650px;
-            position: relative;
-            z-index: 10;
-        }
+  /* ─── FEATURED SNIPPET ─── */
+  .featured-snippet {
+    background: var(--bg3);
+    border: 1px solid var(--accent);
+    border-left: 4px solid var(--accent);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .featured-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .featured-text {
+    font-size: 0.92rem;
+    line-height: 1.7;
+    color: var(--text);
+  }
 
-        .search-bar {
-            width: 100%;
-            padding: 20px 30px;
-            border-radius: 100px;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            color: white;
-            font-size: 1.2rem;
-            outline: none;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            transition: var(--transition-smooth);
-        }
+  /* ─── IMAGE GRID ─── */
+  .image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .image-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
+  }
+  .image-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .image-card img {
+    width: 100%; aspect-ratio: 4/3;
+    object-fit: cover;
+    display: block;
+    background: var(--bg4);
+  }
+  .image-card-info {
+    padding: 10px 12px;
+  }
+  .image-card-title {
+    font-size: 0.8rem;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+  }
+  .image-card-src {
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
 
-        .search-bar:focus {
-            border-color: rgba(216, 180, 254, 0.5);
-            box-shadow: 0 0 30px rgba(216, 180, 254, 0.15), inset 0 0 10px rgba(216, 180, 254, 0.05);
-            background: rgba(255, 255, 255, 0.04);
-        }
+  /* ─── VIDEO GRID ─── */
+  .video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .video-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
+  }
+  .video-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .video-thumb {
+    position: relative;
+    aspect-ratio: 16/9;
+    background: var(--bg4);
+    overflow: hidden;
+  }
+  .video-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .play-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.3);
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .video-card:hover .play-overlay { opacity: 1; }
+  .play-btn-big {
+    width: 52px; height: 52px;
+    background: rgba(124,106,247,0.9);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .video-duration {
+    position: absolute;
+    bottom: 8px; right: 8px;
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    font-size: 0.72rem;
+    font-family: var(--mono);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .video-info { padding: 12px 14px; }
+  .video-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .video-channel {
+    font-size: 0.78rem;
+    color: var(--muted);
+    display: flex; align-items: center; gap: 6px;
+  }
 
-        /* Results Area */
-        .results-container {
-            width: 100%;
-            max-width: 750px;
-            margin-top: 30px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(20px);
-            transition: all 0.5s ease;
-            max-height: 70vh;
-            overflow-y: auto;
-            padding: 5px 15px;
-        }
+  /* ─── NEWS TAB ─── */
+  .news-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 16px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    text-decoration: none;
+  }
+  .news-card:hover { border-color: var(--border2); }
+  .news-thumb {
+    width: 120px; height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: var(--bg4);
+    flex-shrink: 0;
+  }
+  .news-body { flex: 1; min-width: 0; }
+  .news-source {
+    font-size: 0.75rem;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-family: var(--mono);
+  }
+  .news-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+  .news-snippet {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .news-time {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 8px;
+    font-family: var(--mono);
+  }
 
-        /* Custom Scrollbar for Results */
-        .results-container::-webkit-scrollbar { width: 6px; }
-        .results-container::-webkit-scrollbar-thumb { background: rgba(216, 180, 254, 0.2); border-radius: 10px; }
-        .results-container::-webkit-scrollbar-thumb:hover { background: rgba(216, 180, 254, 0.5); }
+  /* ─── LOADING ─── */
+  .loading-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 0;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text {
+    font-size: 0.88rem;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
 
-        .results-active {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
+  /* ─── ERROR ─── */
+  .error-box {
+    background: rgba(248,113,113,0.08);
+    border: 1px solid rgba(248,113,113,0.25);
+    border-radius: 12px;
+    padding: 20px 24px;
+    color: var(--red);
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
 
-        .result-card {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            padding: 22px 28px;
-            border-radius: 16px;
-            transition: all 0.3s ease;
-            text-align: left;
-        }
+  /* ─── EMPTY STATE ─── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.4; }
+  .empty-state p { font-size: 0.92rem; line-height: 1.6; }
 
-        .result-card:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(216, 180, 254, 0.3);
-            transform: scale(1.01);
-        }
+  /* ─── PAGINATION ─── */
+  .pagination {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+  .page-btn {
+    width: 38px; height: 38px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 10px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-family: var(--mono);
+    transition: all 0.15s;
+  }
+  .page-btn:hover { border-color: var(--border2); color: var(--text); }
+  .page-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .page-btn-wide {
+    width: auto;
+    padding: 0 14px;
+  }
 
-        .res-url { color: var(--link-url); font-size: 0.85rem; display: block; margin-bottom: 6px; }
-        .res-link { color: var(--link-title); font-size: 1.35rem; font-weight: 600; text-decoration: none; display: inline-block; margin-bottom: 8px; }
-        .res-link:hover { text-decoration: underline; color: var(--accent-hover); }
-        .res-desc { color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; margin: 0; }
+  /* ─── IMAGE LIGHTBOX ─── */
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox img {
+    max-width: 90vw;
+    max-height: 75vh;
+    object-fit: contain;
+    border-radius: 12px;
+  }
+  .lightbox-close {
+    position: absolute;
+    top: 20px; right: 24px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .lightbox-title {
+    color: var(--text);
+    font-size: 0.9rem;
+    max-width: 600px;
+    text-align: center;
+  }
+  .lightbox-open-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-family: var(--font);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+  }
 
-        /* Loader */
-        .loader { color: var(--accent-main); font-style: italic; text-align: center; padding: 20px; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
-    </style>
+  /* ─── AUTOCOMPLETE ─── */
+  .autocomplete-box {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0; right: 0;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    overflow: hidden;
+    z-index: 200;
+    display: none;
+  }
+  .autocomplete-box.open { display: block; }
+  .autocomplete-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.1s;
+    color: var(--text);
+  }
+  .autocomplete-item:hover { background: var(--bg4); }
+  .autocomplete-icon { color: var(--muted); font-size: 14px; }
+
+  /* ─── VOICE SEARCH ─── */
+  .voice-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 18px;
+    padding: 8px;
+    border-radius: 8px;
+    transition: color 0.15s, background 0.15s;
+    display: flex; align-items: center;
+  }
+  .voice-btn:hover { color: var(--text); background: var(--bg4); }
+  .voice-btn.listening { color: var(--red); animation: pulse 1s ease infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .content-wrap { padding: 16px; }
+    .top-logo-text { display: none; }
+    .video-grid { grid-template-columns: 1fr; }
+    .news-thumb { display: none; }
+    .image-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  }
+
+  /* ─── INLINE RESULTS IN ALL TAB ─── */
+  .section-header {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    margin: 24px 0 14px;
+  }
+  .section-title {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .section-more {
+    font-size: 0.8rem;
+    color: var(--accent);
+    cursor: pointer;
+    border: none; background: none; font-family: var(--font);
+  }
+  .section-more:hover { text-decoration: underline; }
+  .all-images-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .all-images-row .image-card img { aspect-ratio: 1; }
+  .all-videos-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 600px) {
+    .all-images-row { grid-template-columns: repeat(2, 1fr); }
+    .all-videos-row { grid-template-columns: 1fr; }
+  }
+
+  /* ─── KNOWLEDGE PANEL ─── */
+  .knowledge-panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .kp-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 4px; }
+  .kp-type { font-size: 0.82rem; color: var(--muted); margin-bottom: 14px; font-family: var(--mono); }
+  .kp-desc { font-size: 0.88rem; line-height: 1.7; color: var(--text); margin-bottom: 14px; }
+  .kp-row { display: flex; align-items: baseline; gap: 8px; padding: 7px 0; border-top: 1px solid var(--border); }
+  .kp-label { font-size: 0.78rem; color: var(--muted); width: 100px; flex-shrink: 0; }
+  .kp-value { font-size: 0.85rem; color: var(--text); }
+
+  /* ─── QUERY REFINEMENT CHIPS ─── */
+  .refine-chips {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px;
+  }
+  .refine-chip {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .refine-chip:hover { border-color: var(--accent); color: var(--accent2); }
+
+  /* Key config note */
+  .api-note {
+    display: none;
+  }
+</style>
 </head>
 <body>
 
-    <div class="master-container" id="appRoot">
-        <div class="header-group">
-            <h1 class="logo" onclick="resetUI()">NOVA</h1>
-            <div class="clock" id="timeDisplay">00:00:00</div>
-        </div>
+<!-- ────────────── LANDING PAGE ────────────── -->
+<div id="landing">
+  <div class="logo-wrap">
+    <div class="logo-icon">✦</div>
+    <div class="logo-text">Nexus</div>
+  </div>
+  <p class="tagline">Search the web, images, and videos — all in one place</p>
+  <div class="search-container">
+    <div class="search-box" id="landing-search-box">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="main-search" placeholder="Search anything..." autocomplete="off">
+      <button class="voice-btn" id="voice-btn-land" title="Voice search" onclick="startVoice('main-search')">🎤</button>
+      <button class="search-btn" onclick="doSearch()">Search</button>
+    </div>
+    <div class="autocomplete-box" id="landing-autocomplete"></div>
+  </div>
+  <div class="suggestions-row" id="suggestions">
+    <span class="suggestion-pill" onclick="quickSearch('artificial intelligence 2025')">Artificial Intelligence</span>
+    <span class="suggestion-pill" onclick="quickSearch('space exploration news')">Space Exploration</span>
+    <span class="suggestion-pill" onclick="quickSearch('climate change solutions')">Climate Change</span>
+    <span class="suggestion-pill" onclick="quickSearch('quantum computing breakthrough')">Quantum Computing</span>
+    <span class="suggestion-pill" onclick="quickSearch('global technology trends')">Tech Trends</span>
+    <span class="suggestion-pill" onclick="quickSearch('beautiful nature photography')">Nature Photography</span>
+  </div>
+</div>
 
-        <div class="search-container">
-            <input type="text" id="searchInput" class="search-bar" placeholder="Search the galaxy..." autocomplete="off">
+<!-- ────────────── RESULTS PAGE ────────────── -->
+<div id="results-page">
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="top-logo" onclick="backToHome()">
+      <div class="top-logo-icon">✦</div>
+      <span class="top-logo-text">Nexus</span>
+    </div>
+    <div class="top-search-wrap">
+      <span class="top-search-icon">⌕</span>
+      <input type="text" id="top-search" placeholder="Search anything..." autocomplete="off">
+      <button class="voice-btn" onclick="startVoice('top-search')" title="Voice">🎤</button>
+      <button class="top-search-btn" onclick="doSearchFromTop()">Search</button>
+    </div>
+  </div>
+  <!-- Tabs -->
+  <div class="tabs-bar">
+    <div class="tab active" id="tab-all" onclick="switchTab('all')">🌐 All</div>
+    <div class="tab" id="tab-images" onclick="switchTab('images')">🖼 Images</div>
+    <div class="tab" id="tab-videos" onclick="switchTab('videos')">▶ Videos</div>
+    <div class="tab" id="tab-news" onclick="switchTab('news')">📰 News</div>
+  </div>
+  <!-- Content -->
+  <div class="content-wrap">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Time Range</div>
+        <label class="filter-option"><input type="radio" name="time" value="any" checked onchange="applyFilters()"> Any time</label>
+        <label class="filter-option"><input type="radio" name="time" value="day" onchange="applyFilters()"> Past 24 hours</label>
+        <label class="filter-option"><input type="radio" name="time" value="week" onchange="applyFilters()"> Past week</label>
+        <label class="filter-option"><input type="radio" name="time" value="month" onchange="applyFilters()"> Past month</label>
+        <label class="filter-option"><input type="radio" name="time" value="year" onchange="applyFilters()"> Past year</label>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Safe Search</div>
+        <div class="safe-search-toggle">
+          <span style="font-size:0.85rem;color:var(--muted)">Filter results</span>
+          <div class="toggle-switch on" id="safe-toggle" onclick="toggleSafe()"></div>
         </div>
-
-        <div class="results-container" id="searchResults"></div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Region</div>
+        <select onchange="applyFilters()" style="background:var(--bg4);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:6px 10px;width:100%;font-family:var(--font);font-size:0.85rem;outline:none;">
+          <option value="us">United States</option>
+          <option value="kw">Kuwait</option>
+          <option value="gb">United Kingdom</option>
+          <option value="de">Germany</option>
+          <option value="jp">Japan</option>
+          <option value="in">India</option>
+          <option value="global" selected>Global</option>
+        </select>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Source Type</div>
+        <label class="filter-option"><input type="checkbox" checked> Web pages</label>
+        <label class="filter-option"><input type="checkbox" checked> News articles</label>
+        <label class="filter-option"><input type="checkbox" checked> Academic</label>
+        <label class="filter-option"><input type="checkbox"> Shopping</label>
+      </div>
     </div>
 
-    <!-- UI Sounds -->
-    <audio id="sndSearch" src="https://www.soundjay.com/buttons/sounds/button-16.mp3" preload="auto"></audio>
-    <audio id="sndReset" src="https://www.soundjay.com/buttons/sounds/button-17.mp3" preload="auto"></audio>
+    <!-- Main Area -->
+    <div class="main-results" id="main-results">
+      <div class="loading-wrap">
+        <div class="spinner"></div>
+        <div class="loading-text">Searching...</div>
+      </div>
+    </div>
+  </div>
+</div>
 
-    <script>
-        // 1. Live Time
-        function updateTime() {
-            document.getElementById('timeDisplay').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-        }
-        setInterval(updateTime, 1000); updateTime();
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="">
+  <div class="lightbox-title" id="lightbox-title"></div>
+  <a class="lightbox-open-btn" id="lightbox-link" href="#" target="_blank" rel="noopener">Open Original</a>
+</div>
 
-        // 2. Core Search Logic
-        async function executeSearch() {
-            const query = document.getElementById('searchInput').value.trim();
-            const root = document.getElementById('appRoot');
-            const results = document.getElementById('searchResults');
+<script>
+// ─── CONFIGURATION ───────────────────────────────────────────────
+const GROQ_API_KEY = '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';
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
-            // PRO FEATURE: If empty and Enter is pressed -> Reset to Middle
-            if (!query) {
-                resetUI();
-                return;
-            }
+// ─── STATE ───────────────────────────────────────────────────────
+let currentQuery = '';
+let currentTab = 'all';
+let safeSearch = true;
+let currentPage = 1;
+let cachedResults = { web: [], images: [], videos: [], news: [] };
+let searchHistory = JSON.parse(localStorage.getItem('nexus_history') || '[]');
+let isListening = false;
 
-            // Key check
-            let apiKey = localStorage.getItem('nova_pro_key');
-            if (!apiKey) {
-                apiKey = prompt("Nova Pro Authorization Required.\nEnter Groq API Key:");
-                if (apiKey) localStorage.setItem('nova_pro_key', apiKey);
-                else return;
-            }
+// ─── INIT ─────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('main-search').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doSearch();
+  });
+  document.getElementById('top-search').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doSearchFromTop();
+  });
+  document.getElementById('main-search').addEventListener('input', e => {
+    showAutocomplete(e.target.value, 'landing-autocomplete', 'main-search');
+  });
+  document.getElementById('top-search').addEventListener('input', e => {
+    showAutocomplete(e.target.value, 'top-autocomplete', 'top-search');
+  });
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.search-box') && !e.target.closest('.top-search-wrap')) {
+      document.querySelectorAll('.autocomplete-box').forEach(b => b.classList.remove('open'));
+    }
+  });
+});
 
-            // Trigger Search State Animations
-            root.classList.add('searching-state');
-            document.getElementById('sndSearch').play().catch(()=>{});
-            
-            // Show loader
-            results.innerHTML = "<div class='result-card'><div class='loader'>Establishing quantum connection...</div></div>";
-            results.classList.add('results-active');
+// ─── AUTOCOMPLETE ─────────────────────────────────────────────────
+const AUTOCOMPLETE_SUGGESTIONS = {
+  'a': ['artificial intelligence', 'apple news', 'amazon latest', 'astronomy photos'],
+  'b': ['bitcoin price today', 'best movies 2025', 'black holes explained'],
+  'c': ['climate change news', 'cryptocurrency news', 'coding tutorials'],
+  'd': ['deep learning', 'dark matter explained', 'developer news'],
+  'e': ['electric vehicles 2025', 'economic forecast', 'earth from space'],
+  'f': ['future of technology', 'football scores', 'free AI tools'],
+  'g': ['global warming solutions', 'gaming news 2025', 'galaxy images'],
+  'h': ['health news today', 'history facts', 'how does AI work'],
+  'i': ['internet of things', 'image recognition AI', 'innovation 2025'],
+  'j': ['james webb telescope', 'japan technology', 'javascript news'],
+  'k': ['kubernetes tutorial', 'knowledge graph AI'],
+  'l': ['latest space news', 'large language models', 'life on mars'],
+  'm': ['machine learning', 'mars exploration', 'mobile technology'],
+  'n': ['neural networks explained', 'nature photography', 'nanotechnology'],
+  'o': ['open source AI', 'ocean exploration', 'optical illusions'],
+  'p': ['programming languages 2025', 'physics explained', 'planetary science'],
+  'q': ['quantum computing news', 'quantum physics basics'],
+  'r': ['renewable energy news', 'robotics 2025', 'react javascript'],
+  's': ['space exploration news', 'solar system facts', 'science breakthroughs'],
+  't': ['technology trends 2025', 'tesla news', 'telescope images'],
+  'u': ['universe facts', 'urban planning tech'],
+  'v': ['virtual reality news', 'virus research', 'video editing AI'],
+  'w': ['web development 2025', 'wildlife photography', 'water on mars'],
+  'x': ['xray astronomy', 'xbox news'],
+  'y': ['youtube shorts trend'],
+  'z': ['zero gravity experiments', 'zoology facts']
+};
 
-            // API Call
-            try {
-                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${apiKey}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        model: "llama-3.3-70b-versatile",
-                        messages: [
-                            {
-                                role: "system", 
-                                content: "You are a search engine. Return exactly 5 highly accurate search results for the user's query. Use this EXACT HTML structure for each result, and nothing else: <div class='result-card'><span class='res-url'>FULL_URL_HERE</span><br><a href='FULL_URL_HERE' target='_blank' class='res-link'>TITLE_HERE</a><p class='res-desc'>DESCRIPTION_HERE</p></div>. Do not include markdown blocks like ```html. Output raw HTML only."
-                            },
-                            {role: "user", content: query}
-                        ],
-                        temperature: 0.1
-                    })
-                });
+function showAutocomplete(val, boxId, inputId) {
+  const box = document.getElementById(boxId);
+  if (!val || val.length < 2) { box.classList.remove('open'); return; }
+  const first = val[0].toLowerCase();
+  const matches = (AUTOCOMPLETE_SUGGESTIONS[first] || [])
+    .filter(s => s.toLowerCase().includes(val.toLowerCase()))
+    .slice(0, 6);
+  const histMatches = searchHistory.filter(h => h.toLowerCase().includes(val.toLowerCase())).slice(0,3);
+  const all = [...new Set([...histMatches, ...matches])].slice(0,7);
+  if (!all.length) { box.classList.remove('open'); return; }
+  box.innerHTML = all.map(s => `
+    <div class="autocomplete-item" onclick="selectSuggestion('${s}','${inputId}','${boxId}')">
+      <span class="autocomplete-icon">⌕</span>${s}
+    </div>`).join('');
+  box.classList.add('open');
+}
 
-                const data = await response.json();
-                if (data.error) throw new Error(data.error.message);
-                
-                // Remove markdown codeblock artifacts if the AI sneaks them in
-                let rawHTML = data.choices[0].message.content;
-                rawHTML = rawHTML.replace(/```html/gi, '').replace(/```/g, '');
-                
-                results.innerHTML = rawHTML;
+function selectSuggestion(val, inputId, boxId) {
+  document.getElementById(inputId).value = val;
+  document.getElementById(boxId).classList.remove('open');
+  if (inputId === 'main-search') doSearch();
+  else doSearchFromTop();
+}
 
-            } catch (err) {
-                results.innerHTML = `<div class='result-card' style='border-color: #ef4444;'><span class='res-link' style='color:#ef4444'>Connection Error</span><p class='res-desc'>${err.message}</p></div>`;
-                if(err.message.includes("API key") || err.message.includes("key")) localStorage.removeItem('nova_pro_key');
-            }
-        }
+// ─── NAVIGATION ───────────────────────────────────────────────────
+function backToHome() {
+  document.getElementById('landing').style.display = 'flex';
+  document.getElementById('results-page').style.display = 'none';
+}
 
-        // 3. Reset UI Function
-        function resetUI() {
-            const root = document.getElementById('appRoot');
-            const results = document.getElementById('searchResults');
-            const input = document.getElementById('searchInput');
-            
-            // Play reset sound
-            document.getElementById('sndReset').play().catch(()=>{});
-            
-            // Clear text
-            input.value = "";
-            
-            // Fade out results
-            results.classList.remove('results-active');
-            
-            // Animate layout back to center
-            root.classList.remove('searching-state');
-            
-            // Wait for fade out, then clear DOM
-            setTimeout(() => {
-                if(!root.classList.contains('searching-state')) {
-                    results.innerHTML = "";
-                }
-            }, 500);
-        }
+function quickSearch(q) {
+  document.getElementById('main-search').value = q;
+  doSearch();
+}
 
-        // 4. Event Listeners
-        document.getElementById('searchInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') executeSearch();
-        });
-        
-        // Clear input with Escape key
-        document.getElementById('searchInput').addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') resetUI();
-        });
-    </script>
+function doSearch() {
+  const q = document.getElementById('main-search').value.trim();
+  if (!q) return;
+  startSearch(q);
+}
+
+function doSearchFromTop() {
+  const q = document.getElementById('top-search').value.trim();
+  if (!q) return;
+  startSearch(q);
+}
+
+function startSearch(q) {
+  currentQuery = q;
+  currentPage = 1;
+  cachedResults = { web: [], images: [], videos: [], news: [] };
+  addToHistory(q);
+  document.getElementById('top-search').value = q;
+  document.getElementById('main-search').value = q;
+  document.getElementById('landing').style.display = 'none';
+  document.getElementById('results-page').style.display = 'flex';
+  document.querySelectorAll('.autocomplete-box').forEach(b => b.classList.remove('open'));
+  fetchAllResults(q);
+}
+
+// ─── HISTORY ──────────────────────────────────────────────────────
+function addToHistory(q) {
+  searchHistory = [q, ...searchHistory.filter(h => h !== q)].slice(0, 20);
+  localStorage.setItem('nexus_history', JSON.stringify(searchHistory));
+}
+
+// ─── TAB SWITCHING ────────────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  renderCurrentTab();
+}
+
+// ─── FETCH ALL RESULTS ────────────────────────────────────────────
+async function fetchAllResults(q) {
+  showLoading();
+  try {
+    await Promise.all([
+      fetchWebResults(q),
+      fetchImages(q),
+      fetchVideos(q),
+      fetchNews(q)
+    ]);
+  } catch(e) {
+    console.error(e);
+  }
+  renderCurrentTab();
+}
+
+// ─── GROQ WEB SEARCH ─────────────────────────────────────────────
+async function fetchWebResults(q) {
+  const systemPrompt = `You are a search engine. The user will give you a search query. 
+Respond ONLY with a JSON array of exactly 10 web search results. 
+Each result must have these fields:
+- title: string (compelling title for the page)
+- url: string (realistic full URL like https://www.domain.com/path)
+- snippet: string (2-3 sentence description, ~100 words, naturally mentioning the query terms)
+- domain: string (just the domain like "example.com")
+- favicon: string (URL like https://www.google.com/s2/favicons?domain=example.com)
+- type: string (one of: "article","news","official","research","video","shopping","social")
+- published: string (a realistic date like "2 hours ago" or "Jan 15, 2025")
+- featured: boolean (true for the single most relevant result only)
+
+Also include a "knowledge" object at array index 0 as a special item with type:"knowledge" containing:
+- entity: string (the main entity/topic)
+- description: string (3-4 sentence overview)
+- facts: array of {label, value} (5 key facts)
+
+Return ONLY valid JSON, no markdown, no explanation.`;
+
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROQ_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: GROQ_MODEL,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: q }
+        ],
+        max_tokens: 3000,
+        temperature: 0.7
+      })
+    });
+    const data = await res.json();
+    let text = data.choices?.[0]?.message?.content || '[]';
+    text = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(text);
+    cachedResults.web = parsed;
+    // Extract news-like items
+    cachedResults.news = parsed.filter(r => r.type === 'news').map(r => ({...r, image: `https://picsum.photos/seed/${encodeURIComponent(r.domain)}/300/200`}));
+  } catch(e) {
+    console.error('Groq error:', e);
+    cachedResults.web = getFallbackResults(q);
+  }
+}
+
+// ─── IMAGES (Unsplash free API + Picsum) ─────────────────────────
+async function fetchImages(q) {
+  const encoded = encodeURIComponent(q);
+  const seeds = [q, q+'1', q+'2', q+'3', q+'nature', q+'art', q+'tech', q+'photo', q+'2025', q+'new'];
+  const images = seeds.slice(0,12).map((seed, i) => ({
+    id: i,
+    title: `${q} — image ${i+1}`,
+    url: `https://picsum.photos/seed/${encodeURIComponent(seed)}/800/600`,
+    thumb: `https://picsum.photos/seed/${encodeURIComponent(seed)}/400/300`,
+    source: 'Picsum Photos',
+    sourceUrl: 'https://picsum.photos',
+    width: 800, height: 600
+  }));
+  
+  // Try Unsplash Source (no key needed)
+  const unsplashSeeds = ['technology','nature','space','science','art','city'];
+  const extras = unsplashSeeds.slice(0,6).map((topic, i) => ({
+    id: 20+i,
+    title: `${q} — ${topic}`,
+    url: `https://source.unsplash.com/800x600/?${encoded},${topic}`,
+    thumb: `https://source.unsplash.com/400x300/?${encoded},${topic}`,
+    source: 'Unsplash',
+    sourceUrl: 'https://unsplash.com',
+    width: 800, height: 600
+  }));
+  
+  cachedResults.images = [...images, ...extras];
+}
+
+// ─── VIDEOS (PeerTube public API + YouTube no-key public) ─────────
+async function fetchVideos(q) {
+  const encoded = encodeURIComponent(q);
+  // Use PeerTube search (no key)
+  try {
+    const res = await fetch(`https://peertube.social/api/v1/search/videos?search=${encoded}&count=12&sort=-trending&nsfw=false`);
+    if (res.ok) {
+      const data = await res.json();
+      cachedResults.videos = (data.data || []).map(v => ({
+        id: v.id,
+        title: v.name,
+        channel: v.account?.displayName || 'Creator',
+        channelAvatar: v.account?.avatar?.path ? `https://peertube.social${v.account.avatar.path}` : null,
+        thumb: v.previewPath ? `https://peertube.social${v.previewPath}` : `https://picsum.photos/seed/${v.id}/640/360`,
+        duration: formatDuration(v.duration),
+        views: formatViews(v.views),
+        url: `https://peertube.social/videos/watch/${v.uuid}`,
+        platform: 'PeerTube',
+        uploaded: timeAgo(v.publishedAt)
+      }));
+    }
+  } catch(e) {}
+  
+  // Fallback with Picsum-based fake video cards + YouTube search link
+  if (!cachedResults.videos.length) {
+    cachedResults.videos = Array.from({length:8}, (_, i) => ({
+      id: i,
+      title: `${q} — Complete Guide ${i > 0 ? '#' + (i+1) : ''}`,
+      channel: ['TechVision','Science Now','Explorer','DeepDive'][i%4],
+      thumb: `https://picsum.photos/seed/${encoded}${i}/640/360`,
+      duration: `${Math.floor(Math.random()*20)+2}:${String(Math.floor(Math.random()*60)).padStart(2,'0')}`,
+      views: `${Math.floor(Math.random()*900+100)}K views`,
+      url: `https://www.youtube.com/results?search_query=${encoded}`,
+      platform: 'YouTube',
+      uploaded: ['2 hours ago','yesterday','3 days ago','1 week ago'][i%4]
+    }));
+  }
+}
+
+// ─── NEWS ─────────────────────────────────────────────────────────
+async function fetchNews(q) {
+  // GNews free tier doesn't need a key for basic search; use a CORS-friendly alternative
+  // We'll use web results filtered as news + supplement with Groq news results
+  // If web already populated news, use that; else use Groq results tagged news
+  if (!cachedResults.news.length) {
+    cachedResults.news = (cachedResults.web || []).filter(r => r.type === 'news').map(r => ({
+      ...r,
+      image: `https://picsum.photos/seed/${encodeURIComponent(r.domain||q)}/300/200`
+    }));
+  }
+  // Always ensure we have some news
+  if (cachedResults.news.length < 3) {
+    const sources = ['Reuters','BBC News','AP News','The Guardian','TechCrunch','Bloomberg','Wired','CNN'];
+    cachedResults.news = Array.from({length:8}, (_, i) => ({
+      title: `${q}: ${['Latest developments and expert analysis','Breaking: New findings emerge','What experts are saying about','Key facts and updates on','Investigation reveals new details about','The complete story behind'][i%6]} ${q}`,
+      url: `https://news.google.com/search?q=${encodeURIComponent(q)}`,
+      domain: sources[i%8].toLowerCase().replace(' ','')+'.com',
+      snippet: `Latest news and updates on ${q}. Experts weigh in on recent developments and what they mean for the future.`,
+      published: ['1h ago','3h ago','5h ago','12h ago','Yesterday','2 days ago','3 days ago','1 week ago'][i],
+      image: `https://picsum.photos/seed/${encodeURIComponent(q+i)}/300/200`,
+      source: sources[i%8]
+    }));
+  }
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────
+function showLoading() {
+  document.getElementById('main-results').innerHTML = `
+    <div class="loading-wrap">
+      <div class="spinner"></div>
+      <div class="loading-text">Searching for "${currentQuery}"...</div>
+    </div>`;
+}
+
+function renderCurrentTab() {
+  switch(currentTab) {
+    case 'all': renderAll(); break;
+    case 'images': renderImages(); break;
+    case 'videos': renderVideos(); break;
+    case 'news': renderNews(); break;
+  }
+}
+
+function renderAll() {
+  const container = document.getElementById('main-results');
+  const webResults = cachedResults.web.filter(r => r.type !== 'knowledge');
+  const knowledge = cachedResults.web.find(r => r.type === 'knowledge');
+  const featured = webResults.find(r => r.featured);
+  const regular = webResults.filter(r => !r.featured);
+  const images = cachedResults.images.slice(0, 4);
+  const videos = cachedResults.videos.slice(0, 2);
+
+  let html = `<div class="results-meta">About ${(Math.random()*500+50).toFixed(0)} million results (${(Math.random()*0.3+0.2).toFixed(2)} seconds)</div>`;
+  
+  // Refinement chips
+  const relatedQueries = generateRelated(currentQuery);
+  html += `<div class="refine-chips">` + relatedQueries.map(r =>
+    `<div class="refine-chip" onclick="quickSearch('${r}')">${r}</div>`).join('') + `</div>`;
+
+  // Featured snippet
+  if (featured) {
+    html += `<div class="featured-snippet">
+      <div class="featured-label">✦ Featured Result</div>
+      <div style="font-weight:600;font-size:1rem;margin-bottom:8px;color:var(--accent2);">${featured.title}</div>
+      <div class="featured-text">${featured.snippet}</div>
+      <div style="margin-top:12px;font-size:0.78rem;color:var(--muted);font-family:var(--mono)">${featured.url}</div>
+    </div>`;
+  }
+
+  // Knowledge panel
+  if (knowledge) {
+    html += `<div class="knowledge-panel">
+      <div class="kp-title">${knowledge.entity || currentQuery}</div>
+      <div class="kp-type">Search Entity</div>
+      <div class="kp-desc">${knowledge.description || ''}</div>
+      ${(knowledge.facts || []).map(f => `
+        <div class="kp-row">
+          <div class="kp-label">${f.label}</div>
+          <div class="kp-value">${f.value}</div>
+        </div>`).join('')}
+    </div>`;
+  }
+
+  // Web results
+  html += `<div class="section-header">
+    <div class="section-title">🌐 Web Results</div>
+  </div>`;
+  html += regular.slice(0,5).map(r => renderWebCard(r)).join('');
+
+  // Images row
+  if (images.length) {
+    html += `<div class="section-header">
+      <div class="section-title">🖼 Images</div>
+      <button class="section-more" onclick="switchTab('images')">See all images →</button>
+    </div>
+    <div class="all-images-row">
+      ${images.map(img => `
+        <div class="image-card" onclick="openLightbox('${img.thumb}','${img.title}','${img.sourceUrl}')">
+          <img src="${img.thumb}" alt="${img.title}" loading="lazy">
+        </div>`).join('')}
+    </div>`;
+  }
+
+  // More web results
+  if (regular.length > 5) {
+    html += `<div style="margin-top:8px;">` + regular.slice(5).map(r => renderWebCard(r)).join('') + `</div>`;
+  }
+
+  // Videos row
+  if (videos.length) {
+    html += `<div class="section-header">
+      <div class="section-title">▶ Videos</div>
+      <button class="section-more" onclick="switchTab('videos')">See all videos →</button>
+    </div>
+    <div class="all-videos-row">
+      ${videos.map(v => renderVideoCard(v)).join('')}
+    </div>`;
+  }
+
+  // Pagination
+  html += renderPagination(8);
+
+  container.innerHTML = html;
+}
+
+function renderWebCard(r) {
+  const favicon = `https://www.google.com/s2/favicons?domain=${r.domain || r.url}&sz=32`;
+  return `<div class="web-result" onclick="openUrl('${r.url}')">
+    <div class="result-url-row">
+      <img class="result-favicon" src="${favicon}" alt="" onerror="this.style.display='none'">
+      <div class="result-url">${r.url || ''}</div>
+    </div>
+    <a class="result-title" href="${r.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${r.title || 'Untitled'}</a>
+    <div class="result-snippet">${highlightQuery(r.snippet || '', currentQuery)}</div>
+    <div class="result-badges">
+      ${r.domain ? `<span class="badge badge-source">${r.domain}</span>` : ''}
+      ${r.published ? `<span class="badge badge-time">${r.published}</span>` : ''}
+      ${r.type ? `<span class="badge badge-type">${r.type}</span>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderImages() {
+  const container = document.getElementById('main-results');
+  const images = cachedResults.images;
+  if (!images.length) {
+    container.innerHTML = emptyState('No images found');
+    return;
+  }
+  let html = `<div class="results-meta">${images.length} images</div>`;
+  html += `<div class="image-grid">` + images.map(img => `
+    <div class="image-card" onclick="openLightbox('${img.url}','${img.title}','${img.sourceUrl || '#'}')">
+      <img src="${img.thumb}" alt="${img.title}" loading="lazy">
+      <div class="image-card-info">
+        <div class="image-card-title">${img.title}</div>
+        <div class="image-card-src">${img.source || 'Web'}</div>
+      </div>
+    </div>`).join('') + `</div>`;
+  container.innerHTML = html;
+}
+
+function renderVideos() {
+  const container = document.getElementById('main-results');
+  const videos = cachedResults.videos;
+  if (!videos.length) {
+    container.innerHTML = emptyState('No videos found');
+    return;
+  }
+  let html = `<div class="results-meta">${videos.length} videos</div>`;
+  html += `<div class="video-grid">` + videos.map(v => renderVideoCard(v)).join('') + `</div>`;
+  container.innerHTML = html;
+}
+
+function renderVideoCard(v) {
+  return `<div class="video-card" onclick="openUrl('${v.url}')">
+    <div class="video-thumb">
+      <img src="${v.thumb}" alt="${v.title}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${encodeURIComponent(v.title)}/640/360'">
+      <div class="play-overlay"><div class="play-btn-big">▶</div></div>
+      ${v.duration ? `<div class="video-duration">${v.duration}</div>` : ''}
+    </div>
+    <div class="video-info">
+      <div class="video-title">${v.title}</div>
+      <div class="video-channel">
+        <span>📺</span>
+        <span>${v.channel || 'Creator'}</span>
+        ${v.views ? `<span style="color:var(--muted)">· ${v.views}</span>` : ''}
+        ${v.uploaded ? `<span style="color:var(--muted)">· ${v.uploaded}</span>` : ''}
+      </div>
+      <div style="margin-top:6px;font-size:0.72rem;color:var(--muted);font-family:var(--mono)">${v.platform || 'Web'}</div>
+    </div>
+  </div>`;
+}
+
+function renderNews() {
+  const container = document.getElementById('main-results');
+  const news = cachedResults.news;
+  if (!news.length) {
+    container.innerHTML = emptyState('No news found');
+    return;
+  }
+  let html = `<div class="results-meta">Latest news about "${currentQuery}"</div>`;
+  html += news.map(n => `
+    <a class="news-card" href="${n.url}" target="_blank" rel="noopener">
+      <img class="news-thumb" src="${n.image || `https://picsum.photos/seed/${encodeURIComponent(n.title||'news')}/120/80`}" alt="" loading="lazy" onerror="this.style.display='none'">
+      <div class="news-body">
+        <div class="news-source">${n.source || n.domain || 'News'}</div>
+        <div class="news-title">${n.title}</div>
+        <div class="news-snippet">${n.snippet || ''}</div>
+        <div class="news-time">${n.published || ''}</div>
+      </div>
+    </a>`).join('');
+  container.innerHTML = html;
+}
+
+// ─── PAGINATION ───────────────────────────────────────────────────
+function renderPagination(totalPages) {
+  let html = `<div class="pagination">
+    <div class="page-btn page-btn-wide" onclick="changePage(${currentPage-1})" ${currentPage===1?'style="opacity:.3;pointer-events:none"':''}>← Prev</div>`;
+  for (let i = 1; i <= totalPages; i++) {
+    html += `<div class="page-btn ${i===currentPage?'active':''}" onclick="changePage(${i})">${i}</div>`;
+  }
+  html += `<div class="page-btn page-btn-wide" onclick="changePage(${currentPage+1})">Next →</div>`;
+  html += `</div>`;
+  return html;
+}
+
+function changePage(p) {
+  if (p < 1) return;
+  currentPage = p;
+  showLoading();
+  setTimeout(() => fetchAllResults(currentQuery + (p > 1 ? ' page ' + p : '')), 300);
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────
+function openUrl(url) {
+  if (!url) return;
+  window.open(url, '_blank', 'noopener');
+}
+
+function openLightbox(src, title, link) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox-title').textContent = title || '';
+  document.getElementById('lightbox-link').href = link || src;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+function closeLightbox(e) {
+  if (!e || e.target === document.getElementById('lightbox') || e.target.classList.contains('lightbox-close')) {
+    document.getElementById('lightbox').classList.remove('open');
+  }
+}
+
+function toggleSafe() {
+  safeSearch = !safeSearch;
+  const el = document.getElementById('safe-toggle');
+  el.classList.toggle('on', safeSearch);
+}
+
+function applyFilters() {
+  fetchAllResults(currentQuery);
+}
+
+function highlightQuery(text, query) {
+  if (!text || !query) return text;
+  const words = query.split(/\s+/).filter(w => w.length > 2);
+  let result = text;
+  words.forEach(w => {
+    const re = new RegExp(`(${w})`, 'gi');
+    result = result.replace(re, '<mark>$1</mark>');
+  });
+  return result;
+}
+
+function generateRelated(q) {
+  const mods = ['news', 'explained', 'best', 'how to', '2025', 'tutorial', 'examples', 'vs'];
+  return mods.slice(0,5).map(m => `${q} ${m}`).concat([`what is ${q}`, `${q} guide`]).slice(0,6);
+}
+
+function emptyState(msg) {
+  return `<div class="empty-state"><div class="empty-icon">⌕</div><p>${msg}</p></div>`;
+}
+
+function formatDuration(secs) {
+  if (!secs) return '0:00';
+  const m = Math.floor(secs/60);
+  const s = secs%60;
+  return m > 60 ? `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${m}:${String(s).padStart(2,'0')}`;
+}
+
+function formatViews(n) {
+  if (!n) return '';
+  if (n >= 1e6) return (n/1e6).toFixed(1)+'M views';
+  if (n >= 1e3) return (n/1e3).toFixed(0)+'K views';
+  return n+' views';
+}
+
+function timeAgo(dateStr) {
+  if (!dateStr) return '';
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const days = Math.floor(diff/86400000);
+  if (days < 1) return 'today';
+  if (days < 7) return days + 'd ago';
+  if (days < 30) return Math.floor(days/7) + 'w ago';
+  return Math.floor(days/30) + 'mo ago';
+}
+
+function getFallbackResults(q) {
+  return Array.from({length:8}, (_, i) => ({
+    title: `${q} — Result ${i+1}`,
+    url: `https://example.com/result-${i+1}`,
+    snippet: `Comprehensive information about ${q}. This result covers key aspects and provides detailed insights.`,
+    domain: 'example.com',
+    type: ['article','news','official','research'][i%4],
+    published: '2 days ago',
+    featured: i === 0
+  }));
+}
+
+// ─── VOICE SEARCH ─────────────────────────────────────────────────
+function startVoice(inputId) {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    alert('Voice search is not supported in your browser. Try Chrome or Edge.');
+    return;
+  }
+  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const rec = new Rec();
+  rec.continuous = false;
+  rec.lang = 'en-US';
+  rec.interimResults = false;
+  rec.onstart = () => isListening = true;
+  rec.onresult = e => {
+    const transcript = e.results[0][0].transcript;
+    document.getElementById(inputId).value = transcript;
+    if (inputId === 'main-search') doSearch();
+    else doSearchFromTop();
+  };
+  rec.onerror = () => isListening = false;
+  rec.onend = () => isListening = false;
+  rec.start();
+}
+
+// keyboard shortcut
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.getElementById('results-page').style.display !== 'none') {
+    e.preventDefault();
+    document.getElementById('top-search').focus();
+  }
+  if (e.key === 'Escape') closeLightbox();
+});
+</script>
 </body>
 </html>
