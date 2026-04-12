@@ -1,5 +1,5 @@
-# NOVA
+# NEXUS
 
-A galaxy start page
+A search engine
 
-Visit: https://sageralajmi87-a11y.github.io/Nova-Startpage
+Visit: https://sageralajmi87-a11y.github.io/Nexus-Startpage
